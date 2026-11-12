@@ -107,12 +107,12 @@ details{margin-top:8px}summary{cursor:pointer;color:var(--acc2);font-size:13px}
     </div>
     <div class="vctl">
       <button class="btn" id="pickBtn">1 · Tocca il marker</button>
-      <button class="btn" id="calBtn">2 · Calibra (2 punti)</button>
-      <div style="flex:1 1 90px"><input id="refcm" type="number" step="0.5" inputmode="decimal" value="45" title="Distanza di riferimento (cm)"></div>
+      <button class="btn" id="calBtn">2 · Calibra sul disco</button>
+      <div style="flex:1 1 130px;display:flex;align-items:center;gap:6px"><span class="hint" style="margin:0;white-space:nowrap">Ø disco</span><input id="refcm" type="number" step="0.5" min="10" inputmode="decimal" value="45" title="Diametro del disco (cm)"><span class="hint" style="margin:0">cm</span></div>
     </div>
     <p class="hint" id="stepMsg" style="margin-top:8px">Avvia la fotocamera o carica un video, poi tocca l'adesivo.</p>
     <details><summary>Calibrazione e impostazioni</summary>
-      <p class="hint" style="margin-top:6px">Per calibrare tocca due punti a distanza nota sullo stesso piano del bilanciere: ad esempio il bordo alto e il bordo basso di un disco da 45 cm, scrivendo 45 nel campo. Senza calibrazione le velocità non sono valide.</p>
+      <p class="hint" style="margin-top:6px">La calibrazione usa il disco sul bilanciere: premi "2 · Calibra sul disco" e tocca <b>3 punti qualsiasi sul bordo esterno</b> del disco, ben distanziati tra loro. L'app ricava il cerchio e usa il suo diametro come riferimento. I dischi olimpici da 10 kg in su (e i bumper) misurano 45 cm; per dischi più piccoli scrivi il loro diametro nel campo Ø. Il disco deve stare sullo stesso piano dell'adesivo, quindi metti l'adesivo sulla testa del bilanciere o sul disco stesso.</p>
       <div class="row">
         <div><label>Tolleranza colore</label><input id="tol" type="range" min="6" max="40" value="16" style="padding:0"></div>
         <div><label>ROM minimo rep (cm)</label><input id="minrom" type="number" value="15" inputmode="decimal"></div>
@@ -511,7 +511,7 @@ function startLoop(paused){
   if(paused){lv.pause();setTimeout(()=>{lv.currentTime=0.001},50)}
   // keep overlay drawn while paused
   const idle=()=>{if(!L.running)return;if(lv.paused)process(L.src==='file'?lv.currentTime:performance.now()/1000,true);setTimeout(idle,120)};idle();
-  stepMsg(L.target?(L.cmPerPx?'Pronto. Esegui la serie.':'Ora calibra: premi "2 · Calibra" e tocca due punti.'):'Premi "1 · Tocca il marker" e tocca l\'adesivo sul bilanciere.');
+  stepMsg(L.target?(L.cmPerPx?'Pronto. Esegui la serie.':'Ora premi "2 · Calibra sul disco" e tocca 3 punti sul bordo del disco.'):'Premi "1 · Tocca il marker" e tocca l\'adesivo sul bilanciere.');
 }
 function grab(){
   const vw=lv.videoWidth,vh=lv.videoHeight;if(!vw)return null;const ph=Math.round(PW*vh/vw);if(pc.width!==PW||pc.height!==ph){pc.width=PW;pc.height=ph}
@@ -565,23 +565,31 @@ function sizeOv(){const r=$('#stage').getBoundingClientRect(),dpr=devicePixelRat
 function drawOv(fr){
   const dpr=devicePixelRatio||1,R=vidRect();octx.setTransform(1,0,0,1,0,0);octx.clearRect(0,0,ov.width,ov.height);octx.setTransform(dpr,0,0,dpr,0,0);
   const toS=(vx,vy)=>[R.x+vx*R.s,R.y+vy*R.s];
-  if(L.cal.length){octx.strokeStyle='#3dd6ff';octx.fillStyle='#3dd6ff';octx.lineWidth=2;const pts=L.cal.map(p=>toS(p.x,p.y));pts.forEach(p=>{octx.beginPath();octx.arc(p[0],p[1],6,0,7);octx.fill()});if(pts.length===2){octx.beginPath();octx.moveTo(...pts[0]);octx.lineTo(...pts[1]);octx.stroke();octx.font='bold 13px system-ui';octx.fillText($('#refcm').value+' cm',pts[1][0]+8,pts[1][1])}}
+  if(L.cal.length){octx.strokeStyle='#3dd6ff';octx.fillStyle='#3dd6ff';octx.lineWidth=2;const pts=L.cal.map(p=>toS(p.x,p.y));pts.forEach(p=>{octx.beginPath();octx.arc(p[0],p[1],6,0,7);octx.fill()});
+    if(L.circ){const c=toS(L.circ.x,L.circ.y),r=L.circ.r*R.s;octx.setLineDash([6,5]);octx.beginPath();octx.arc(c[0],c[1],r,0,7);octx.stroke();octx.setLineDash([]);octx.beginPath();octx.moveTo(c[0],c[1]-r);octx.lineTo(c[0],c[1]+r);octx.stroke();octx.font='bold 13px system-ui';octx.fillText('Ø '+$('#refcm').value+' cm',c[0]+8,c[1])}}
   const H=L.hist;if(H.length>1){octx.strokeStyle='rgba(198,255,61,.7)';octx.lineWidth=3;octx.beginPath();const tl=H[H.length-1].t;let st=false;H.forEach(a=>{if(tl-a.t>2.5)return;const p=toS(a.px/fr.k,a.py/fr.k);st?octx.lineTo(...p):(octx.moveTo(...p),st=true)});octx.stroke()}
   if(L.pos){const p=toS(L.pos.px/fr.k,L.pos.py/fr.k);octx.strokeStyle=L.state==='up'?'#c6ff3d':'#fff';octx.lineWidth=3;octx.beginPath();octx.arc(p[0],p[1],16,0,7);octx.stroke()}
   else if(L.target){octx.fillStyle='rgba(255,93,93,.85)';octx.font='bold 14px system-ui';octx.fillText('Marker non trovato',12,24)}
 }
 $('#pickBtn').onclick=()=>{if(!lv.videoWidth)return toast('Avvia prima la fotocamera o un video');L.mode='pick';stepMsg('<b>Tocca l\'adesivo</b> sul bilanciere nell\'immagine.')};
-$('#calBtn').onclick=()=>{if(!lv.videoWidth)return toast('Avvia prima la fotocamera o un video');L.mode='cal';L.cal=[];L.cmPerPx=null;stepMsg(`<b>Tocca il primo punto</b> (es. bordo alto del disco), poi il secondo, a ${$('#refcm').value} cm di distanza.`)};
-$('#refcm').oninput=()=>{if(L.cal.length===2)setCal()};
-function setCal(){const a=L.cal[0],b=L.cal[1];const dpx=Math.hypot(a.x-b.x,a.y-b.y);const cm=num($('#refcm').value);if(dpx>5&&cm>0){L.cmPerPx=cm/dpx;L.hist=[]}}
+$('#calBtn').onclick=()=>{if(!lv.videoWidth)return toast('Avvia prima la fotocamera o un video');L.mode='cal';L.cal=[];L.circ=null;L.cmPerPx=null;stepMsg(`<b>Tocca 3 punti sul bordo esterno del disco</b> (Ø ${$('#refcm').value} cm), ben distanziati tra loro. Punto 1 di 3.`)};
+$('#refcm').value=store.get('vbt_disc','45');
+$('#refcm').oninput=()=>{store.set('vbt_disc',$('#refcm').value);if(L.circ)setCal()};
+function circle3(a,b,c){const d=2*(a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y));if(Math.abs(d)<1e-6)return null;
+  const A=a.x*a.x+a.y*a.y,B=b.x*b.x+b.y*b.y,C=c.x*c.x+c.y*c.y;const x=(A*(b.y-c.y)+B*(c.y-a.y)+C*(a.y-b.y))/d,y=(A*(c.x-b.x)+B*(a.x-c.x)+C*(b.x-a.x))/d;return{x,y,r:Math.hypot(a.x-x,a.y-y)}}
+function setCal(){const cm=num($('#refcm').value);if(L.circ&&L.circ.r>5&&cm>0){L.cmPerPx=cm/(2*L.circ.r);L.hist=[]}}
 $('#stage').addEventListener('pointerdown',e=>{
   if(!L.mode||!lv.videoWidth)return;const r=$('#stage').getBoundingClientRect(),R=vidRect();
   const vx=(e.clientX-r.left-R.x)/R.s,vy=(e.clientY-r.top-R.y)/R.s;if(vx<0||vy<0||vx>lv.videoWidth||vy>lv.videoHeight)return;
   if(L.mode==='pick'){const fr=grab();const k=fr.k,cx=Math.round(vx*k),cy=Math.round(vy*k);let r0=0,g0=0,b0=0,n=0;for(let y=cy-2;y<=cy+2;y++)for(let x=cx-2;x<=cx+2;x++){if(x<0||y<0||x>=PW||y>=fr.ph)continue;const i=(y*PW+x)*4;r0+=fr.img.data[i];g0+=fr.img.data[i+1];b0+=fr.img.data[i+2];n++}
     const hsv=rgb2hsv(r0/n,g0/n,b0/n);if(hsv[1]<0.25){toast('Colore poco saturo: usa un adesivo fluo');}
     L.target=hsv;L.pos={px:cx,py:cy};L.lostN=0;L.mode=null;
-    stepMsg(L.cmPerPx?'Pronto. Esegui la serie.':'Marker preso ✓. Ora premi "2 · Calibra" e tocca due punti a distanza nota.');}
-  else if(L.mode==='cal'){L.cal.push({x:vx,y:vy});if(L.cal.length===2){setCal();L.mode=null;stepMsg(L.target?'Calibrato ✓. Pronto: esegui la serie.':'Calibrato ✓. Ora tocca il marker.')}}
+    stepMsg(L.cmPerPx?'Pronto. Esegui la serie.':'Marker preso ✓. Ora premi "2 · Calibra sul disco" e tocca 3 punti sul bordo del disco.');}
+  else if(L.mode==='cal'){L.cal.push({x:vx,y:vy});
+    if(L.cal.length<3)stepMsg(`<b>Tocca il bordo del disco</b>: punto ${L.cal.length+1} di 3.`);
+    else{const c=circle3(...L.cal);const mn=Math.min(lv.videoWidth,lv.videoHeight);
+      if(!c||c.r*2<mn*0.05||c.r*2>mn*3){L.cal=[];L.circ=null;stepMsg('<span class="pill bd">Cerchio non valido</span> Tocca di nuovo 3 punti ben distanziati sul bordo del disco. Punto 1 di 3.');}
+      else{L.circ=c;setCal();L.mode=null;stepMsg(`Calibrato ✓ (disco Ø ${$('#refcm').value} cm = ${Math.round(2*c.r)} px). `+(L.target?'Pronto: esegui la serie.':'Ora tocca il marker.'))}}}
   if(lv.paused)process(L.src==='file'?lv.currentTime:performance.now()/1000,true);
 });
 function feedback(c){if($('#beep').value!=='1')return;try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=c==='bd'?330:c==='wn'?600:880;g.gain.value=.15;o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+(c==='bd'?0.45:0.12))}catch(e){}try{navigator.vibrate&&navigator.vibrate(c==='bd'?[200,80,200]:60)}catch(e){}}
