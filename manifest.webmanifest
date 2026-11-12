@@ -1,6 +1,6 @@
 {
-  "name": "VBT Calc",
-  "short_name": "VBT",
+  "name": "Osteo_vbt",
+  "short_name": "Osteo_vbt",
   "description": "Velocity based training: profilo carico-velocità, perdita di velocità, analisi live",
   "start_url": "./",
   "scope": "./",

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VBT Calc</title>
+<title>Osteo_vbt</title>
 <meta name="theme-color" content="#0f1115">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -75,7 +75,7 @@ details{margin-top:8px}summary{cursor:pointer;color:var(--acc2);font-size:13px}
 </head>
 <body>
 <header><div class="hwrap">
-  <h1><b>VBT</b> Calc</h1>
+  <h1 style="display:flex;align-items:center;gap:10px"><img src="icon.svg" alt="" width="30" height="30" style="border-radius:8px">Osteo<b>_vbt</b></h1>
   <nav id="nav">
     <button data-t="live">● Live</button>
     <button data-t="profilo" class="on">Profilo L-V</button>
@@ -486,13 +486,13 @@ function stopAll(){L.running=false;if(L.stream){L.stream.getTracks().forEach(t=>
 $('#stopBtn').onclick=()=>{stopAll();$('#camMsg').textContent='Fermato.'};
 $('#camBtn').onclick=async()=>{
   stopAll();
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('#camMsg').innerHTML='<span class="pill bd">Fotocamera non disponibile</span> Questo browser o questa pagina non può usare la fotocamera. Apri il file <b>VBT Calc</b> fuori da Claude oppure analizza un video.';return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('#camMsg').innerHTML='<span class="pill bd">Fotocamera non disponibile</span> Questo browser o questa pagina non può usare la fotocamera. Apri il file <b>Osteo_vbt</b> fuori da Claude oppure analizza un video.';return}
   try{
     const st=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},frameRate:{ideal:60},width:{ideal:1280},height:{ideal:720}}});
     L.stream=st;lv.srcObject=st;lv.removeAttribute('src');L.src='cam';await lv.play();
     const s=st.getVideoTracks()[0].getSettings();$('#camMsg').innerHTML=`<span class="pill ok">Fotocamera attiva</span> ${s.width||''}×${s.height||''} @ ${s.frameRate?Math.round(s.frameRate):'?'} fps`;
     startLoop();
-  }catch(e){$('#camMsg').innerHTML='<span class="pill bd">Fotocamera bloccata</span> Dentro la pagina di Claude la fotocamera non è consentita. Usa il file <b>VBT Calc</b> aperto nel browser oppure carica un video qui sopra.';}
+  }catch(e){$('#camMsg').innerHTML='<span class="pill bd">Fotocamera bloccata</span> Dentro la pagina di Claude la fotocamera non è consentita. Usa il file <b>Osteo_vbt</b> aperto nel browser oppure carica un video qui sopra.';}
 };
 $('#lfile').onchange=e=>{const fl=e.target.files[0];if(!fl)return;stopAll();lv.srcObject=null;lv.src=URL.createObjectURL(fl);L.src='file';lv.playbackRate=+$('#lrate').value;
   lv.onloadeddata=()=>{lv.currentTime=0;$('#camMsg').innerHTML='<span class="pill ok">Video caricato</span> Tocca il marker e calibra, poi premi ▶︎.';startLoop(true)}};

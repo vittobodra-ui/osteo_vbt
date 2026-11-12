@@ -1,4 +1,4 @@
-# VBT Calc
+# Osteo_vbt
 
 Web app per il **velocity based training**, da usare in palestra su telefono e PC.
 
