@@ -75,9 +75,11 @@ details{margin-top:8px}summary{cursor:pointer;color:var(--acc2);font-size:13px}
 </head>
 <body>
 <header><div class="hwrap">
-  <h1 style="display:flex;align-items:center;gap:10px"><img src="icon.svg" alt="" width="30" height="30" style="border-radius:8px">Osteo<b>_vbt</b></h1>
+  <h1 style="display:flex;align-items:center;gap:10px"><img src="icon.svg" alt="" width="30" height="30" style="border-radius:8px"><span>Osteo<b>_vbt</b></span></h1>
   <nav id="nav">
     <button data-t="live">● Live</button>
+    <button data-t="sensore">📱 Sensore</button>
+    <button data-t="salti">🦘 Salti</button>
     <button data-t="profilo" class="on">Profilo L-V</button>
     <button data-t="serie">Perdita velocità</button>
     <button data-t="carichi">Carichi</button>
@@ -143,6 +145,93 @@ details{margin-top:8px}summary{cursor:pointer;color:var(--acc2);font-size:13px}
       </div>
     </div>
     <p class="hint" style="margin-top:10px">La soglia VL% è quella scelta nella scheda "Perdita velocità". La velocità media concentrica va dal punto più basso al punto più alto di ogni ripetizione. La precisione dipende da fps, luce e calibrazione: a 60 fps con buona luce l'errore è di qualche centesimo di m/s.</p>
+  </div>
+</section>
+
+<!-- SENSORE -->
+<section id="sensore">
+  <div class="card">
+    <h2>Sensore del telefono (fascia)</h2>
+    <p class="hint">Metti il telefono in una fascia da corsa ben stretta, <b>sull'avambraccio vicino al polso</b> (è la posizione migliore; sul bicipite la misura in panca e military è meno affidabile). L'app usa l'accelerometro del telefono per calcolare la velocità di ogni ripetizione.</p>
+    <div class="row">
+      <div style="flex:0 0 auto"><button class="btn p" id="senBtn">▶︎ Avvia sensore</button></div>
+      <div style="flex:0 0 auto"><button class="btn" id="senStop">■ Ferma</button></div>
+      <div><label>ROM minimo rep (cm)</label><input id="sminrom" type="number" value="12" inputmode="decimal"></div>
+    </div>
+    <p class="hint" id="senMsg" style="margin-top:8px"></p>
+    <details><summary>Come ottenere misure buone</summary>
+      <p class="hint" style="margin-top:6px">1) Prima della serie tieni il braccio fermo per 1 secondo. 2) <b>In cima a ogni ripetizione fermati un attimo</b>, basta mezzo secondo: l'app usa quella pausa per azzerare l'errore e chiudere la ripetizione. In basso non serve fermarsi. 3) La fascia non deve muoversi sul braccio. 4) Lo schermo resta acceso da solo; non bloccare il telefono durante la serie, altrimenti il sensore si ferma.</p>
+      <p class="hint">L'errore è più grande che con la fotocamera e dipende dal telefono. Usala soprattutto per la perdita di velocità nella serie. Per verificarla, confronta una serie con la scheda Live.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="grid g2">
+      <div>
+        <div class="kpi" id="senBox"><div class="l">Ultima rep · velocità media</div><div class="big" id="sLast">–</div><div id="sStatus" class="hint" style="margin:0">In attesa</div></div>
+        <div class="kpis" style="margin:10px 0 0">
+          <div class="kpi"><div class="l">Stato</div><div class="v" id="sState" style="font-size:17px">–</div></div>
+          <div class="kpi"><div class="l">Rep</div><div class="v" id="sN">0</div></div>
+          <div class="kpi"><div class="l">VL% attuale</div><div class="v" id="sVL">–</div></div>
+          <div class="kpi"><div class="l">%1RM stimato</div><div class="v" id="sPct">–</div></div>
+        </div>
+      </div>
+      <div>
+        <table><thead><tr><th>Rep</th><th>V media</th><th>V picco</th><th>ROM</th><th>VL%</th></tr></thead><tbody id="stab"></tbody></table>
+        <div class="flex" style="margin-top:10px">
+          <button class="btn p" id="sToSerie">Invia a Perdita velocità</button>
+          <button class="btn" id="sReset">Nuova serie</button>
+          <button class="btn" id="sCopy">Copia</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SALTI -->
+<section id="salti">
+  <div class="card">
+    <h2>Test di salto con il telefono</h2>
+    <p class="hint">L'app misura il <b>tempo di volo</b>: mentre sei in aria il telefono è in caduta libera e l'accelerometro legge quasi zero. Da lì calcola altezza, tempo di contatto e RSI. Funziona con il telefono in qualsiasi orientamento.</p>
+    <div class="row">
+      <div><label>Test</label><select id="jmode">
+        <option value="cmj">CMJ – countermovement jump</option>
+        <option value="sj">SJ – squat jump</option>
+        <option value="dj">Drop jump (RSI)</option>
+      </select></div>
+      <div id="boxWrap" style="display:none"><label>Altezza box (cm)</label><input id="jbox" type="number" value="40" inputmode="decimal"></div>
+      <div><label>Atleta</label><input id="jath" placeholder="Nome"></div>
+    </div>
+    <div class="flex" style="margin-top:12px">
+      <button class="btn p" id="jStart">▶︎ Avvia</button>
+      <button class="btn" id="jStop">■ Ferma</button>
+    </div>
+    <p class="hint" id="jMsg" style="margin-top:8px"></p>
+    <details><summary>Dove mettere il telefono e come saltare</summary>
+      <p class="hint" style="margin-top:6px"><b>Posizione:</b> la migliore è vicino al bacino, in una fascia o marsupio da corsa ben stretti in vita o in una tasca aderente. Va bene anche la fascia sul braccio, ma tenendo le <b>mani sui fianchi</b>, come nel protocollo standard di CMJ e SJ. Se le braccia oscillano, il volo del telefono non coincide con quello del corpo.</p>
+      <p class="hint"><b>Atterraggio:</b> atterra sugli avampiedi con le gambe distese come allo stacco, poi ammortizza. Se atterri con le ginocchia già piegate il tempo di volo si allunga e l'altezza risulta gonfiata, proprio come con le pedane a contatto.</p>
+      <p class="hint"><b>Drop jump:</b> scendi dal box facendo un passo avanti (non saltare giù), rimbalza subito più in alto possibile e con il contatto più breve possibile. L'app riconosce la caduta, il contatto e il salto.</p>
+      <p class="hint">Precisione: dipende dalla frequenza del sensore. A 60 Hz l'errore sull'altezza è di circa 1–2 cm, a 100 Hz meno. Per confrontare i test usa sempre lo stesso telefono e la stessa posizione.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="grid g2">
+      <div>
+        <div class="kpi" id="jBox"><div class="l" id="jBigL">Ultimo salto · altezza</div><div class="big" id="jLast">–</div><div id="jState" class="hint" style="margin:0">In attesa</div></div>
+        <div class="kpis" style="margin:10px 0 0">
+          <div class="kpi"><div class="l">Migliore</div><div class="v" id="jBest">–</div></div>
+          <div class="kpi"><div class="l">Media</div><div class="v" id="jMean">–</div></div>
+          <div class="kpi"><div class="l">Salti</div><div class="v" id="jN">0</div></div>
+          <div class="kpi" id="jRsiK" style="display:none"><div class="l">RSI migliore</div><div class="v" id="jRsiB">–</div></div>
+        </div>
+      </div>
+      <div>
+        <table><thead id="jhead"></thead><tbody id="jtab"></tbody></table>
+        <div class="flex" style="margin-top:10px">
+          <button class="btn" id="jReset">Nuovo test</button>
+          <button class="btn p" id="jCopy">Copia risultati</button>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -611,13 +700,145 @@ $('#lCopy').onclick=()=>{if(!L.reps.length)return toast('Nessuna rep');const b=M
 $('#vlth').addEventListener('change',()=>renderL());
 renderL();
 
+/* ---------- SENSORE (DeviceMotion) ---------- */
+let wl=null;
+const S={on:false,last:null,g:null,pre:[],seg:null,stillT:0,reps:[],n:0,t0:0,vLive:0};
+function sMsg(t){$('#senMsg').innerHTML=t}
+$('#senBtn').onclick=async()=>{
+  try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();audio.resume&&audio.resume()}catch(e){}
+  if(!('DeviceMotionEvent' in window)){sMsg('<span class="pill bd">Sensore non disponibile</span> Questo dispositivo o browser non fornisce l\'accelerometro.');return}
+  if(typeof DeviceMotionEvent.requestPermission==='function'){try{const r=await DeviceMotionEvent.requestPermission();if(r!=='granted'){sMsg('<span class="pill bd">Permesso negato</span> Su iPhone consenti l\'accesso a movimento e orientamento.');return}}catch(e){sMsg('<span class="pill bd">Permesso non concesso</span> '+(location.protocol!=='https:'?'Serve il link https dell\'app.':'Riprova toccando di nuovo il pulsante.'));return}}
+  if(!S.on){window.addEventListener('devicemotion',onMotion);S.on=true}
+  Object.assign(S,{last:null,g:null,pre:[],seg:null,stillT:0,n:0,t0:performance.now()});
+  try{if('wakeLock' in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}}catch(e){}
+  sMsg('Avvio… tieni il braccio fermo 1 secondo.');
+  setTimeout(()=>{if(S.on&&!S.n)sMsg('<span class="pill bd">Nessun dato</span> Il sensore non risponde. Dentro la pagina di Claude è bloccato: apri l\'app dal link GitHub.')},1500);
+};
+$('#senStop').onclick=()=>{window.removeEventListener('devicemotion',onMotion);S.on=false;S.seg=null;$('#sState').textContent='Fermo';sMsg('Sensore fermato.')};
+function onMotion(e){
+  const ag=e.accelerationIncludingGravity;if(!ag||ag.x==null)return;
+  const t=e.timeStamp/1000;let dt=S.last==null?0.016:t-S.last;S.last=t;if(!(dt>0)||dt>0.1)dt=0.016;
+  S.n++;
+  const a=e.acceleration;let ax,ay,az,gx,gy,gz;
+  if(a&&a.x!=null){ax=a.x;ay=a.y;az=a.z;gx=ag.x-ax;gy=ag.y-ay;gz=ag.z-az}
+  else{if(!S.g)S.g=[ag.x,ag.y,ag.z];if(!S.seg){const k=dt/(0.6+dt);S.g=[S.g[0]+k*(ag.x-S.g[0]),S.g[1]+k*(ag.y-S.g[1]),S.g[2]+k*(ag.z-S.g[2])]}
+    [gx,gy,gz]=S.g;ax=ag.x-gx;ay=ag.y-gy;az=ag.z-gz}
+  const gn=Math.hypot(gx,gy,gz);if(gn<5)return;
+  const av=(ax*gx+ay*gy+az*gz)/gn; // vertical linear acceleration, up positive
+  const still=Math.abs(av)<0.6;S.stillT=still?S.stillT+dt:0;
+  const smp={t,a:av};
+  if(S.n%30===0){const hz=S.n/((performance.now()-S.t0)/1000);sMsg(`<span class="pill ok">Sensore attivo</span> ${Math.round(hz)} Hz${hz<40?' · frequenza bassa, misura meno precisa':''}`)}
+  if(!S.seg){
+    S.pre.push(smp);while(S.pre.length&&t-S.pre[0].t>0.3)S.pre.shift();
+    if(Math.abs(av)>1.0){S.seg=S.pre.slice();S.pre=[];S.vLive=0;$('#sState').textContent='In movimento'}
+    else $('#sState').textContent=S.stillT>0.2?'Fermo':'…';
+  }else{
+    S.seg.push(smp);S.vLive+=av*dt;
+    const dur=t-S.seg[0].t;
+    if((S.stillT>=0.25&&dur>0.4)||dur>10){const sg=S.seg;S.seg=null;S.pre=[];$('#sState').textContent='Fermo';analyzeSeg(sg)}
+  }
+}
+function analyzeSeg(sg){
+  const n=sg.length;if(n<10)return;
+  const v=new Array(n).fill(0);for(let i=1;i<n;i++){const dt=sg[i].t-sg[i-1].t;v[i]=v[i-1]+(sg[i].a+sg[i-1].a)/2*dt}
+  const T0=sg[0].t,T=sg[n-1].t-T0,vend=v[n-1];
+  for(let i=0;i<n;i++)v[i]-=vend*(sg[i].t-T0)/T; // drift correction: still at both ends
+  const p=new Array(n).fill(0);for(let i=1;i<n;i++)p[i]=p[i-1]+(v[i]+v[i-1])/2*(sg[i].t-sg[i-1].t);
+  const minR=num($('#sminrom').value)/100||0.12;let i=0,added=0;
+  while(i<n){
+    if(v[i]>0.08){let s=i,e=i;while(s>0&&v[s-1]>0)s--;while(e<n-1&&v[e+1]>0)e++;
+      // trim slow, noisy tails: from leaving the bottom to first reaching the top (1.5 mm tolerance)
+      let bi=s,ti=s;for(let k=s;k<=e;k++)if(p[k]<p[bi])bi=k;for(let k=bi;k<=e;k++)if(p[k]>p[ti]||ti<bi)ti=k;
+      let s2=bi,e2=ti;for(let k=bi;k<ti;k++)if(p[k]<=p[bi]+0.0015)s2=k;for(let k=ti;k>s2;k--)if(p[k]>=p[ti]-0.0015)e2=k;
+      const disp=p[e2]-p[s2],dt=sg[e2].t-sg[s2].t;let pk=0;for(let k=s2;k<=e2;k++)pk=Math.max(pk,v[k]);
+      if(disp>=minR&&dt>0.1){S.reps.push({v:disp/dt,pk,rom:disp*100});added++}
+      i=e+1}else i++;
+  }
+  if(added)renderS(true);
+}
+function renderS(fresh){
+  const th=+$('#vlth').value,Rr=S.reps,best=Rr.length?Math.max(...Rr.map(r=>r.v)):0;
+  $('#stab').innerHTML=Rr.map((r,i)=>{const l=(1-r.v/best)*100;const c=l>=th?'bd':l>=th*0.75?'wn':'ok';return `<tr><td>${i+1}</td><td><b>${f(r.v)}</b></td><td>${f(r.pk)}</td><td>${f(r.rom,0)} cm</td><td><span class="pill ${c}">${f(l,1)}%</span></td></tr>`}).join('')||'<tr><td colspan="5" class="hint">Nessuna ripetizione</td></tr>';
+  $('#sN').textContent=Rr.length;
+  if(!Rr.length){$('#sLast').textContent='–';$('#sVL').textContent='–';$('#sPct').textContent='–';$('#sStatus').textContent='In attesa';$('#senBox').style.borderColor='';return}
+  const last=Rr[Rr.length-1],vl=(1-last.v/best)*100,c=vl>=th?'bd':vl>=th*0.75?'wn':'ok';
+  $('#sLast').innerHTML=`${f(last.v)} <small style="font-size:16px">m/s</small>`;$('#sVL').textContent=f(vl,1)+'%';
+  $('#sPct').textContent=M&&Number.isFinite(M.rm)?f(loadAt(Rr[0].v)/M.rm*100,0)+'%':'–';
+  $('#sStatus').innerHTML=c==='bd'?'<span class="pill bd">STOP</span> Soglia VL superata':c==='wn'?'<span class="pill wn">Vicino alla soglia</span>':'<span class="pill ok">Continua</span>';
+  $('#senBox').style.borderColor=c==='bd'?'var(--bad)':c==='wn'?'var(--warn)':'var(--acc)';
+  if(fresh)feedback(c);
+}
+$('#sReset').onclick=()=>{S.reps=[];renderS()};
+$('#sToSerie').onclick=()=>{if(!S.reps.length)return toast('Nessuna rep');R=S.reps.map(r=>+r.v.toFixed(3));store.set('vbt_reps',R);updSerie();$('#nav [data-t=serie]').click();toast('Serie inviata')};
+$('#sCopy').onclick=()=>{if(!S.reps.length)return toast('Nessuna rep');const b=Math.max(...S.reps.map(r=>r.v));copy('Rep\tV media\tV picco\tROM cm\tVL%\n'+S.reps.map((r,i)=>`${i+1}\t${f(r.v)}\t${f(r.pk)}\t${f(r.rom,0)}\t${f((1-r.v/b)*100,1)}`).join('\n'))};
+$('#vlth').addEventListener('change',()=>renderS());
+renderS();
+
+/* ---------- SALTI ---------- */
+const J={on:false,air:false,pm:null,pt:null,tk:0,pending:null,jumps:[],n:0,t0:0,last:null};
+const G=9.81,FF=3.0;
+function jMsg(t){$('#jMsg').innerHTML=t}
+function jModeUI(){const dj=$('#jmode').value==='dj';$('#boxWrap').style.display=dj?'':'none';$('#jRsiK').style.display=dj?'':'none';$('#jBigL').textContent=dj?'Ultimo drop jump · RSI':'Ultimo salto · altezza';
+  $('#jhead').innerHTML=dj?'<tr><th>#</th><th>Contatto</th><th>Volo</th><th>Altezza</th><th>RSI</th></tr>':'<tr><th>#</th><th>Volo</th><th>Altezza</th><th></th></tr>';renderJ()}
+$('#jmode').onchange=()=>{store.set('vbt_jmode',$('#jmode').value);J.jumps=[];J.pending=null;jModeUI()};
+$('#jath').oninput=()=>store.set('vbt_jath',$('#jath').value);
+$('#jStart').onclick=async()=>{
+  try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();audio.resume&&audio.resume()}catch(e){}
+  if(!('DeviceMotionEvent' in window)){jMsg('<span class="pill bd">Sensore non disponibile</span>');return}
+  if(typeof DeviceMotionEvent.requestPermission==='function'){try{const r=await DeviceMotionEvent.requestPermission();if(r!=='granted'){jMsg('<span class="pill bd">Permesso negato</span> Su iPhone consenti movimento e orientamento.');return}}catch(e){jMsg('<span class="pill bd">Permesso non concesso</span> Riprova toccando il pulsante.');return}}
+  if(!J.on){window.addEventListener('devicemotion',onJump);J.on=true}
+  Object.assign(J,{air:false,pm:null,pt:null,pending:null,n:0,t0:performance.now(),last:null});
+  try{if('wakeLock' in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}}catch(e){}
+  jMsg('Avvio…');$('#jState').textContent=$('#jmode').value==='dj'?'Pronto: sali sul box e lasciati cadere':'Pronto: salta';
+  setTimeout(()=>{if(J.on&&!J.n)jMsg('<span class="pill bd">Nessun dato</span> Il sensore non risponde. Dentro la pagina di Claude è bloccato: apri l\'app dal link GitHub.')},1500);
+};
+$('#jStop').onclick=()=>{window.removeEventListener('devicemotion',onJump);J.on=false;jMsg('Fermato.')};
+function onJump(e){
+  const ag=e.accelerationIncludingGravity;if(!ag||ag.x==null)return;
+  const t=e.timeStamp/1000,m=Math.hypot(ag.x,ag.y,ag.z);J.n++;
+  if(J.n%30===0){const hz=J.n/((performance.now()-J.t0)/1000);jMsg(`<span class="pill ok">Sensore attivo</span> ${Math.round(hz)} Hz${hz<50?' · frequenza bassa, altezza meno precisa':''}`)}
+  if(J.pm!=null){
+    const cross=()=>J.pt+(t-J.pt)*(FF-J.pm)/(m-J.pm); // interpolated threshold crossing
+    if(!J.air&&m<FF&&J.pm>=FF){J.air=true;J.tk=cross()}
+    else if(J.air&&m>=FF&&J.pm<FF){J.air=false;const tl=cross(),ft=tl-J.tk;if(ft>=0.12&&ft<=1.3)onFlight(J.tk,tl,ft)}
+    if(J.air&&t-J.tk>1.5)J.air=false;
+  }
+  J.pm=m;J.pt=t;
+  if(J.pending&&t-J.pending.tl>1.2){J.pending=null;$('#jState').textContent='Contatto troppo lungo: riprova il drop jump'}
+}
+function onFlight(tk,tl,ft){
+  const h=G*ft*ft/8;
+  if($('#jmode').value!=='dj'){J.jumps.push({ft,h});renderJ(true);return}
+  if(J.pending&&tk-J.pending.tl<=1.0){const ct=tk-J.pending.tl;J.jumps.push({ft,h,ct,rsi:h/ct,drop:G*J.pending.ft*J.pending.ft/2});J.pending=null;renderJ(true)}
+  else{J.pending={tk,tl,ft};$('#jState').textContent='Caduta dal box rilevata…'}
+}
+function renderJ(fresh){
+  const dj=$('#jmode').value==='dj',A=J.jumps;
+  $('#jtab').innerHTML=A.map((j,i)=>dj?`<tr><td>${i+1}</td><td>${f(j.ct*1000,0)} ms</td><td>${f(j.ft*1000,0)} ms</td><td>${f(j.h*100,1)} cm</td><td><b>${f(j.rsi,2)}</b></td></tr>`:`<tr><td>${i+1}</td><td>${f(j.ft*1000,0)} ms</td><td><b>${f(j.h*100,1)} cm</b></td><td><button class="btn x" data-del="${i}">×</button></td></tr>`).join('')||`<tr><td colspan="5" class="hint">Nessun salto</td></tr>`;
+  $('#jN').textContent=A.length;
+  if(!A.length){['#jLast','#jBest','#jMean','#jRsiB'].forEach(x=>$(x).textContent='–');return}
+  const hs=A.map(j=>j.h*100),last=A[A.length-1];
+  $('#jBest').innerHTML=`${f(Math.max(...hs),1)} <small>cm</small>`;$('#jMean').innerHTML=`${f(hs.reduce((a,b)=>a+b,0)/hs.length,1)} <small>cm</small>`;
+  if(dj){$('#jLast').innerHTML=`${f(last.rsi,2)}`;$('#jRsiB').textContent=f(Math.max(...A.map(j=>j.rsi)),2);
+    $('#jState').innerHTML=`${f(last.h*100,1)} cm · contatto ${f(last.ct*1000,0)} ms`+(last.ct>0.25?' · <span class="pill wn">contatto lungo</span>':'')}
+  else{$('#jLast').innerHTML=`${f(last.h*100,1)} <small style="font-size:16px">cm</small>`;$('#jState').textContent=`Volo ${f(last.ft*1000,0)} ms`}
+  if(fresh)feedback('ok');
+}
+$('#jtab').addEventListener('click',e=>{const d=e.target.dataset.del;if(d==null)return;J.jumps.splice(+d,1);renderJ()});
+$('#jReset').onclick=()=>{J.jumps=[];J.pending=null;renderJ()};
+$('#jCopy').onclick=()=>{if(!J.jumps.length)return toast('Nessun salto');const dj=$('#jmode').value==='dj';const name=$('#jmode').selectedOptions[0].text.split(' –')[0];
+  let t=`${name}${dj?' da '+$('#jbox').value+' cm':''} – ${$('#jath').value||'Atleta'} – ${new Date().toLocaleDateString('it-IT')}\n`;
+  t+=dj?'#\tContatto ms\tVolo ms\tAltezza cm\tRSI\n'+J.jumps.map((j,i)=>`${i+1}\t${f(j.ct*1000,0)}\t${f(j.ft*1000,0)}\t${f(j.h*100,1)}\t${f(j.rsi,2)}`).join('\n'):'#\tVolo ms\tAltezza cm\n'+J.jumps.map((j,i)=>`${i+1}\t${f(j.ft*1000,0)}\t${f(j.h*100,1)}`).join('\n');
+  const hs=J.jumps.map(j=>j.h*100);t+=`\nMigliore: ${f(Math.max(...hs),1)} cm · Media: ${f(hs.reduce((a,b)=>a+b,0)/hs.length,1)} cm`;if(dj)t+=` · RSI migliore: ${f(Math.max(...J.jumps.map(j=>j.rsi)),2)}`;copy(t)};
+$('#jmode').value=store.get('vbt_jmode','cmj');$('#jath').value=store.get('vbt_jath','');jModeUI();
+
 /* init */
 $('#vlth').value=store.get('vbt_th','20');
 loadUI();renderSaved();renderV();
 const t0=store.get('vbt_tab','live');const tb=$(`#nav [data-t="${t0}"]`);if(tb)tb.click();
 if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 /* schermo sempre acceso durante la live */
-let wl=null;async function keepAwake(){try{if('wakeLock' in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}}catch(e){}}
+async function keepAwake(){try{if('wakeLock' in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}}catch(e){}}
 $('#camBtn').addEventListener('click',keepAwake);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&L.stream)keepAwake()});
 </script>
 </body>
