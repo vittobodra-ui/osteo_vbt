@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VBT Calc</title>
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#0f1115;--card:#171a21;--line:#262b36;--txt:#e8ebf1;--mut:#8b93a5;
+  --acc:#c6ff3d;--acc2:#3dd6ff;--warn:#ffb03d;--bad:#ff5d5d;--r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:rgba(15,17,21,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hwrap{max-width:980px;margin:0 auto;padding:12px 16px 0}
+h1{margin:0 0 10px;font-size:20px;letter-spacing:.5px}
+h1 b{color:var(--acc)}
+nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;background:none;border:0;color:var(--mut);padding:10px 12px;font:600 14px system-ui;border-bottom:2px solid transparent;cursor:pointer}
+nav button.on{color:var(--txt);border-color:var(--acc)}
+main{max-width:980px;margin:0 auto;padding:16px}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:16px}
+.hint{color:var(--mut);font-size:13px;margin:0 0 12px}
+.grid{display:grid;gap:14px}
+@media(min-width:820px){.g2{grid-template-columns:1fr 1fr}}
+label{display:block;font-size:12px;color:var(--mut);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+input,select{width:100%;background:#0f1218;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px;font:16px system-ui}
+input:focus,select:focus{outline:2px solid var(--acc2);outline-offset:-1px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.row>div{flex:1 1 120px}
+.btn{background:#232836;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font:600 14px system-ui;cursor:pointer}
+.btn:active{transform:scale(.98)}
+.btn.p{background:var(--acc);color:#111;border-color:var(--acc)}
+.btn.s{padding:6px 10px;font-size:13px}
+.btn.x{background:none;border:0;color:var(--mut);font-size:18px;padding:4px 8px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:7px 6px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-size:12px;font-weight:600;text-transform:uppercase}
+td input{padding:7px;font-size:15px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}
+.kpi{background:#0f1218;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi .l{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+.kpi .v{font-size:22px;font-weight:700;margin-top:2px}
+.kpi .v small{font-size:13px;color:var(--mut);font-weight:500}
+.kpi.a .v{color:var(--acc)}
+canvas{width:100%;display:block;background:#0f1218;border:1px solid var(--line);border-radius:12px}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:700}
+.ok{background:rgba(198,255,61,.15);color:var(--acc)}
+.wn{background:rgba(255,176,61,.15);color:var(--warn)}
+.bd{background:rgba(255,93,93,.15);color:var(--bad)}
+.bar{height:8px;background:#0f1218;border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--acc)}
+video{width:100%;max-height:55vh;background:#000;border-radius:12px;display:block}
+.vctl{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.vctl .btn{flex:1 1 auto;min-width:54px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--acc);color:#111;padding:10px 16px;border-radius:99px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+.zone{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 12px;border-radius:10px;margin-bottom:8px;border-left:4px solid}
+.zone b{font-size:15px}.zone span{color:var(--mut);font-size:13px}
+.big{font-size:44px;font-weight:800;line-height:1;margin:6px 0}
+.flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+details{margin-top:8px}summary{cursor:pointer;color:var(--acc2);font-size:13px}
+</style>
+</head>
+<body>
+<header><div class="hwrap">
+  <h1><b>VBT</b> Calc</h1>
+  <nav id="nav">
+    <button data-t="live">● Live</button>
+    <button data-t="profilo" class="on">Profilo L-V</button>
+    <button data-t="serie">Perdita velocità</button>
+    <button data-t="carichi">Carichi</button>
+    <button data-t="video">Misura da video</button>
+    <button data-t="zone">Zone</button>
+  </nav>
+</div></header>
+
+<main>
+<!-- LIVE -->
+<section id="live">
+  <div class="card">
+    <h2>Analisi in tempo reale</h2>
+    <p class="hint">Attacca un adesivo colorato e brillante (verde o arancio fluo, 3–5 cm) sulla testa del bilanciere. Metti il telefono su un supporto, di lato, con la testa del bilanciere ben visibile. L'app segue l'adesivo, conta le ripetizioni e misura la velocità di ognuna appena la completi.</p>
+    <div class="row">
+      <div style="flex:0 0 auto"><button class="btn p" id="camBtn">📷 Avvia fotocamera</button></div>
+      <div style="flex:2 1 200px"><label>…oppure analizza un video</label><input type="file" id="lfile" accept="video/*"></div>
+      <div style="flex:0 0 auto"><button class="btn" id="stopBtn">■ Ferma</button></div>
+    </div>
+    <p class="hint" id="camMsg" style="margin-top:8px"></p>
+  </div>
+
+  <div class="card">
+    <div id="stage" style="position:relative;background:#000;border-radius:12px;overflow:hidden;touch-action:none">
+      <video id="lvid" playsinline muted style="width:100%;max-height:60vh;display:block;border-radius:0"></video>
+      <canvas id="ov" style="position:absolute;inset:0;width:100%;height:100%;border:0;background:none;border-radius:0"></canvas>
+    </div>
+    <div class="vctl">
+      <button class="btn" id="pickBtn">1 · Tocca il marker</button>
+      <button class="btn" id="calBtn">2 · Calibra (2 punti)</button>
+      <div style="flex:1 1 90px"><input id="refcm" type="number" step="0.5" inputmode="decimal" value="45" title="Distanza di riferimento (cm)"></div>
+    </div>
+    <p class="hint" id="stepMsg" style="margin-top:8px">Avvia la fotocamera o carica un video, poi tocca l'adesivo.</p>
+    <details><summary>Calibrazione e impostazioni</summary>
+      <p class="hint" style="margin-top:6px">Per calibrare tocca due punti a distanza nota sullo stesso piano del bilanciere: ad esempio il bordo alto e il bordo basso di un disco da 45 cm, scrivendo 45 nel campo. Senza calibrazione le velocità non sono valide.</p>
+      <div class="row">
+        <div><label>Tolleranza colore</label><input id="tol" type="range" min="6" max="40" value="16" style="padding:0"></div>
+        <div><label>ROM minimo rep (cm)</label><input id="minrom" type="number" value="15" inputmode="decimal"></div>
+        <div><label>Velocità video</label><select id="lrate"><option value="1">1×</option><option value="0.5" selected>0.5×</option><option value="0.25">0.25×</option></select></div>
+        <div><label>Suono / vibrazione</label><select id="beep"><option value="1" selected>Sì</option><option value="0">No</option></select></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <div class="grid g2">
+      <div>
+        <div class="kpi" id="liveBox"><div class="l">Ultima rep · velocità media</div><div class="big" id="lvLast">–</div><div id="lvStatus" class="hint" style="margin:0">In attesa</div></div>
+        <div class="kpis" style="margin:10px 0 0">
+          <div class="kpi"><div class="l">Vel. istantanea</div><div class="v" id="lvNow">–</div></div>
+          <div class="kpi"><div class="l">Rep</div><div class="v" id="lvN">0</div></div>
+          <div class="kpi"><div class="l">VL% attuale</div><div class="v" id="lvVL">–</div></div>
+          <div class="kpi"><div class="l">%1RM stimato</div><div class="v" id="lvPct">–</div></div>
+        </div>
+      </div>
+      <div>
+        <table><thead><tr><th>Rep</th><th>V media</th><th>V picco</th><th>ROM</th><th>VL%</th></tr></thead><tbody id="ltab"></tbody></table>
+        <div class="flex" style="margin-top:10px">
+          <button class="btn p" id="lToSerie">Invia a Perdita velocità</button>
+          <button class="btn" id="lReset">Nuova serie</button>
+          <button class="btn" id="lCopy">Copia</button>
+        </div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:10px">La soglia VL% è quella scelta nella scheda "Perdita velocità". La velocità media concentrica va dal punto più basso al punto più alto di ogni ripetizione. La precisione dipende da fps, luce e calibrazione: a 60 fps con buona luce l'errore è di qualche centesimo di m/s.</p>
+  </div>
+</section>
+
+<!-- PROFILO -->
+<section id="profilo" class="on">
+  <div class="card">
+    <h2>Profilo carico-velocità</h2>
+    <p class="hint">Inserisci almeno 3 carichi (meglio 4–6, dal 40% al 90% circa) con la velocità media propulsiva/concentrica della ripetizione migliore. L'1RM si stima dove la retta incrocia la velocità minima (MVT).</p>
+    <div class="row">
+      <div><label>Atleta</label><input id="atleta" placeholder="Nome"></div>
+      <div><label>Esercizio</label><select id="esercizio"></select></div>
+      <div><label>MVT (m/s)</label><input id="mvt" type="number" step="0.01" inputmode="decimal"></div>
+    </div>
+    <table style="margin-top:12px">
+      <thead><tr><th>#</th><th>Carico (kg)</th><th>V media (m/s)</th><th></th></tr></thead>
+      <tbody id="ptab"></tbody>
+    </table>
+    <div class="flex" style="margin-top:10px">
+      <button class="btn" id="addP">+ Aggiungi carico</button>
+      <button class="btn" id="demoP">Esempio</button>
+      <button class="btn" id="clrP">Svuota</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Risultati</h2>
+    <div class="kpis">
+      <div class="kpi a"><div class="l">1RM stimato</div><div class="v" id="k1rm">–</div></div>
+      <div class="kpi"><div class="l">R²</div><div class="v" id="kr2">–</div></div>
+      <div class="kpi"><div class="l">Pendenza</div><div class="v" id="kslope">–</div></div>
+      <div class="kpi"><div class="l">V a carico 0 (V0)</div><div class="v" id="kv0">–</div></div>
+      <div class="kpi"><div class="l">Carico a V 0 (L0)</div><div class="v" id="kl0">–</div></div>
+    </div>
+    <div id="quality" class="hint"></div>
+    <canvas id="chart" height="320"></canvas>
+    <div class="flex" style="margin-top:12px">
+      <button class="btn p" id="saveP">Salva profilo</button>
+      <button class="btn" id="copyP">Copia risultati</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Profili salvati</h2>
+    <p class="hint">Restano su questo dispositivo e browser. Per portarli altrove usa "Copia risultati".</p>
+    <div id="saved"></div>
+  </div>
+</section>
+
+<!-- SERIE -->
+<section id="serie">
+  <div class="card">
+    <h2>Perdita di velocità nella serie</h2>
+    <p class="hint">Inserisci la velocità di ogni ripetizione man mano. La perdita (VL%) si calcola rispetto alla ripetizione più veloce; quando superi la soglia, la serie va chiusa.</p>
+    <div class="row">
+      <div><label>Soglia VL%</label><select id="vlth">
+        <option value="10">10% – potenza, fatica minima</option>
+        <option value="20" selected>20% – forza</option>
+        <option value="30">30% – forza/ipertrofia</option>
+        <option value="40">40% – ipertrofia, fatica alta</option>
+      </select></div>
+      <div><label>Velocità rep (m/s)</label><input id="vin" type="number" step="0.01" inputmode="decimal" placeholder="es. 0.62"></div>
+      <div style="flex:0 0 auto"><button class="btn p" id="addR">Aggiungi rep</button></div>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <div class="kpi" style="margin-bottom:10px"><div class="l">Perdita attuale</div><div class="big" id="vlNow">0%</div><div class="bar"><i id="vlBar" style="width:0"></i></div><div id="vlMsg" style="margin-top:8px"></div></div>
+        <div class="kpis" style="margin:0">
+          <div class="kpi"><div class="l">Rep migliore</div><div class="v" id="vBest">–</div></div>
+          <div class="kpi"><div class="l">Media serie</div><div class="v" id="vMean">–</div></div>
+          <div class="kpi"><div class="l">Rep</div><div class="v" id="vN">0</div></div>
+          <div class="kpi"><div class="l">%1RM stimato</div><div class="v" id="vPct">–</div></div>
+        </div>
+        <p class="hint" style="margin-top:8px">Il %1RM usa la prima ripetizione e il profilo attivo nella scheda "Profilo L-V".</p>
+      </div>
+      <div>
+        <table><thead><tr><th>Rep</th><th>m/s</th><th>VL%</th><th></th></tr></thead><tbody id="rtab"></tbody></table>
+        <div class="flex" style="margin-top:10px"><button class="btn" id="clrR">Nuova serie</button><button class="btn" id="copyR">Copia serie</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CARICHI -->
+<section id="carichi">
+  <div class="card">
+    <h2>Dal profilo al carico</h2>
+    <p class="hint">Usa il profilo attivo. Scegli una velocità o una % e ottieni il carico corrispondente.</p>
+    <div class="row">
+      <div><label>Velocità bersaglio (m/s)</label><input id="tv" type="number" step="0.01" inputmode="decimal" placeholder="es. 0.75"></div>
+      <div><label>Carico</label><div class="kpi"><div class="v" id="tvOut">–</div></div></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div><label>Carico sul bilanciere (kg)</label><input id="tl" type="number" step="0.5" inputmode="decimal" placeholder="es. 100"></div>
+      <div><label>Velocità attesa · %1RM</label><div class="kpi"><div class="v" id="tlOut">–</div></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Tabella %1RM → velocità → kg</h2>
+    <p class="hint" id="tabHint">Crea prima un profilo.</p>
+    <table><thead><tr><th>%1RM</th><th>V attesa (m/s)</th><th>Carico (kg)</th></tr></thead><tbody id="ctab"></tbody></table>
+    <div class="flex" style="margin-top:10px"><button class="btn" id="copyT">Copia tabella</button></div>
+  </div>
+</section>
+
+<!-- VIDEO -->
+<section id="video">
+  <div class="card">
+    <h2>Misura la velocità da un video</h2>
+    <p class="hint">Riprendi la serie di lato, telefono fermo e bilanciere intero nell'inquadratura. Se il telefono lo consente, registra a 60 fps o in slow motion. Carica il video, segna l'inizio e la fine di ogni fase concentrica fotogramma per fotogramma e inserisci l'escursione del bilanciere (ROM).</p>
+    <div class="row">
+      <div style="flex:2 1 220px"><label>Video</label><input type="file" id="vfile" accept="video/*"></div>
+      <div><label>FPS del video</label><select id="fps"><option>30</option><option selected>60</option><option>120</option><option>240</option></select></div>
+      <div><label>ROM (cm)</label><input id="rom" type="number" step="0.5" inputmode="decimal" placeholder="es. 45"></div>
+    </div>
+    <details><summary>Come misurare il ROM</summary>
+      <p class="hint" style="margin-top:6px">Misura con un metro la distanza verticale percorsa dal bilanciere: ad esempio, nella panca, dal petto alla chiusura dei gomiti. Va misurato una volta per atleta ed esercizio, sempre con la stessa tecnica. Un errore di 2 cm su 45 cambia la velocità di circa il 4%.</p>
+    </details>
+  </div>
+
+  <div class="card">
+    <video id="vid" playsinline muted preload="auto"></video>
+    <input type="range" id="seek" min="0" max="1000" value="0" style="margin-top:10px;padding:0">
+    <div class="flex hint mono" style="justify-content:space-between;margin:6px 0 0"><span id="tcur">0.000 s · fotogramma 0</span><span id="vrate"></span></div>
+    <div class="vctl">
+      <button class="btn" data-f="-10">−10</button>
+      <button class="btn" data-f="-1">−1</button>
+      <button class="btn" id="play">▶︎</button>
+      <button class="btn" data-f="1">+1</button>
+      <button class="btn" data-f="10">+10</button>
+      <button class="btn" id="slow">0.25×</button>
+    </div>
+    <div class="vctl">
+      <button class="btn p" id="mStart">Segna INIZIO</button>
+      <button class="btn p" id="mEnd">Segna FINE</button>
+    </div>
+    <p class="hint mono" id="marks" style="margin-top:10px">Inizio: – · Fine: –</p>
+  </div>
+
+  <div class="card">
+    <h2>Ripetizioni misurate</h2>
+    <table><thead><tr><th>Rep</th><th>Δt (s)</th><th>m/s</th><th>VL%</th><th></th></tr></thead><tbody id="vtab"></tbody></table>
+    <div class="flex" style="margin-top:10px">
+      <button class="btn p" id="toSerie">Invia a Perdita velocità</button>
+      <button class="btn" id="clrV">Svuota</button>
+    </div>
+    <p class="hint" style="margin-top:10px">Velocità media concentrica = ROM ÷ tempo. È meno precisa di un encoder lineare (±0.03–0.05 m/s a 60 fps), ma va bene per seguire le tendenze. Per confrontare le sedute usa sempre gli stessi fps e la stessa inquadratura.</p>
+  </div>
+</section>
+
+<!-- ZONE -->
+<section id="zone">
+  <div class="card">
+    <h2>Zone di velocità</h2>
+    <p class="hint">Fasce indicative e generiche, molto diffuse nel VBT. Valgono soprattutto per squat e panca; per la stacco, ad esempio, le velocità sono più basse. Se hai un profilo attivo, accanto a ogni zona compare il carico corrispondente.</p>
+    <div id="zlist"></div>
+  </div>
+  <div class="card">
+    <h2>MVT di riferimento</h2>
+    <p class="hint">MVT è la velocità media della ripetizione all'1RM. Sono valori medi riportati in letteratura e variano da persona a persona: se conosci l'MVT del tuo atleta, scrivilo a mano nel profilo.</p>
+    <table id="mvtTab"><thead><tr><th>Esercizio</th><th>MVT (m/s)</th></tr></thead><tbody></tbody></table>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const EX={ "Squat":0.30,"Panca piana":0.17,"Stacco da terra":0.15,"Military press":0.19,"Rematore panca prona":0.50,"Trazioni zavorrate":0.23,"Hip thrust":0.25,"Leg press":0.21,"Altro (inserisci MVT)":0.20 };
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1600)}
+function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copiato')).catch(()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Copiato')}catch(e){toast('Copia non riuscita')}a.remove()})}
+const f=(n,d=2)=>Number.isFinite(n)?n.toFixed(d):'–';
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return Number.isFinite(n)?n:NaN};
+
+/* tabs */
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('#nav button').forEach(x=>x.classList.toggle('on',x===b));$$('section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));if(b.dataset.t==='profilo')draw();store.set('vbt_tab',b.dataset.t)});
+
+/* ---------- PROFILO ---------- */
+let P=store.get('vbt_cur',{atleta:'',ex:'Panca piana',mvt:0.17,pts:[{l:'',v:''},{l:'',v:''},{l:'',v:''},{l:'',v:''}]});
+let M=null; // model
+const exSel=$('#esercizio');
+Object.keys(EX).forEach(k=>exSel.add(new Option(k,k)));
+function loadUI(){$('#atleta').value=P.atleta;exSel.value=P.ex;$('#mvt').value=P.mvt;renderP()}
+function renderP(){
+  $('#ptab').innerHTML=P.pts.map((p,i)=>`<tr><td>${i+1}</td><td><input inputmode="decimal" data-i="${i}" data-k="l" value="${p.l}"></td><td><input inputmode="decimal" data-i="${i}" data-k="v" value="${p.v}"></td><td><button class="btn x" data-del="${i}">×</button></td></tr>`).join('');
+  calc();
+}
+$('#ptab').addEventListener('input',e=>{const t=e.target;if(t.dataset.i==null)return;P.pts[t.dataset.i][t.dataset.k]=t.value;calc()});
+$('#ptab').addEventListener('click',e=>{const d=e.target.dataset.del;if(d==null)return;P.pts.splice(+d,1);renderP()});
+$('#addP').onclick=()=>{P.pts.push({l:'',v:''});renderP()};
+$('#clrP').onclick=()=>{P.pts=[{l:'',v:''},{l:'',v:''},{l:'',v:''}];renderP()};
+$('#demoP').onclick=()=>{P.ex='Panca piana';P.mvt=0.17;P.pts=[{l:'40',v:'1.12'},{l:'60',v:'0.88'},{l:'80',v:'0.63'},{l:'90',v:'0.51'},{l:'100',v:'0.38'}];loadUI()};
+$('#atleta').oninput=e=>{P.atleta=e.target.value;calc()};
+exSel.onchange=e=>{P.ex=e.target.value;P.mvt=EX[P.ex];$('#mvt').value=P.mvt;calc()};
+$('#mvt').oninput=e=>{P.mvt=num(e.target.value);calc()};
+
+function regress(pts){
+  const n=pts.length;if(n<2)return null;
+  let sx=0,sy=0;pts.forEach(p=>{sx+=p.l;sy+=p.v});const mx=sx/n,my=sy/n;
+  let sxx=0,sxy=0,syy=0;pts.forEach(p=>{sxx+=(p.l-mx)**2;sxy+=(p.l-mx)*(p.v-my);syy+=(p.v-my)**2});
+  if(sxx===0)return null;const m=sxy/sxx,b=my-m*mx;
+  const r2=syy?1-pts.reduce((a,p)=>a+(p.v-(m*p.l+b))**2,0)/syy:1;
+  return {m,b,r2,n};
+}
+function calc(){
+  store.set('vbt_cur',P);
+  const pts=P.pts.map(p=>({l:num(p.l),v:num(p.v)})).filter(p=>p.l>0&&p.v>0);
+  const r=regress(pts);M=null;
+  const q=$('#quality');
+  if(r&&r.m<0&&pts.length>=2){
+    const mvt=num(P.mvt);const rm=(mvt-r.b)/r.m;
+    M={...r,mvt,rm,pts,v0:r.b,l0:-r.b/r.m,ex:P.ex,atleta:P.atleta};
+    $('#k1rm').innerHTML=Number.isFinite(rm)?`${f(rm,1)} <small>kg</small>`:'–';
+    $('#kr2').textContent=f(r.r2,3);
+    $('#kslope').innerHTML=`${f(r.m*100,2)} <small>m/s per 100 kg</small>`;
+    $('#kv0').innerHTML=`${f(r.b,2)} <small>m/s</small>`;
+    $('#kl0').innerHTML=`${f(-r.b/r.m,0)} <small>kg</small>`;
+    let msg=[];
+    if(pts.length<3)msg.push('<span class="pill wn">Pochi punti</span> Ne servono almeno 3.');
+    if(r.r2<0.95)msg.push('<span class="pill wn">R² basso</span> Controlla i dati o ripeti un carico: un buon profilo ha R² ≥ 0,95.');
+    else msg.push('<span class="pill ok">Profilo affidabile</span>');
+    const maxL=Math.max(...pts.map(p=>p.l));if(Number.isFinite(rm)&&maxL/rm<0.8)msg.push('Il carico più alto è sotto l\'80% dell\'1RM stimato, quindi la stima è meno precisa.');
+    q.innerHTML=msg.join(' ');
+  }else{
+    ['#k1rm','#kr2','#kslope','#kv0','#kl0'].forEach(s=>$(s).textContent='–');
+    q.innerHTML=r&&r.m>=0?'<span class="pill bd">Errore</span> La velocità deve scendere quando il carico sale: controlla i dati.':'Inserisci almeno 2 carichi con la velocità.';
+  }
+  draw();updCarichi();updSerie();updZone();
+}
+function draw(){
+  const c=$('#chart');if(!c.offsetWidth)return;const dpr=devicePixelRatio||1;const W=c.offsetWidth,H=Math.min(340,Math.max(240,W*0.55));
+  c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px';const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,W,H);
+  const pad={l:44,r:14,t:14,b:34};
+  const pts=M?M.pts:P.pts.map(p=>({l:num(p.l),v:num(p.v)})).filter(p=>p.l>0&&p.v>0);
+  if(!pts.length){x.fillStyle='#8b93a5';x.font='14px system-ui';x.textAlign='center';x.fillText('Il grafico compare quando inserisci i dati',W/2,H/2);return}
+  let xmax=Math.max(...pts.map(p=>p.l),M&&Number.isFinite(M.rm)?M.rm:0)*1.08;let ymax=Math.max(...pts.map(p=>p.v),0.5)*1.12;
+  const X=v=>pad.l+v/xmax*(W-pad.l-pad.r),Y=v=>H-pad.b-v/ymax*(H-pad.t-pad.b);
+  x.strokeStyle='#262b36';x.fillStyle='#8b93a5';x.font='11px system-ui';x.lineWidth=1;
+  for(let i=0;i<=5;i++){const yv=ymax*i/5;x.beginPath();x.moveTo(pad.l,Y(yv));x.lineTo(W-pad.r,Y(yv));x.stroke();x.textAlign='right';x.fillText(yv.toFixed(2),pad.l-6,Y(yv)+4)}
+  const step=xmax>200?50:xmax>100?20:10;x.textAlign='center';
+  for(let v=0;v<=xmax;v+=step){x.fillText(v,X(v),H-pad.b+16)}
+  x.fillText('kg',W-pad.r-8,H-6);x.save();x.translate(12,pad.t+40);x.rotate(-Math.PI/2);x.fillText('m/s',0,0);x.restore();
+  if(M){
+    x.strokeStyle='#ff5d5d';x.setLineDash([4,4]);x.beginPath();x.moveTo(pad.l,Y(M.mvt));x.lineTo(W-pad.r,Y(M.mvt));x.stroke();x.setLineDash([]);
+    x.fillStyle='#ff5d5d';x.textAlign='left';x.fillText('MVT '+f(M.mvt),pad.l+4,Y(M.mvt)-5);
+    x.strokeStyle='#3dd6ff';x.lineWidth=2;x.beginPath();const x0=0,x1=Number.isFinite(M.rm)?Math.min(M.rm,xmax):xmax;x.moveTo(X(x0),Y(M.b));x.lineTo(X(x1),Y(M.m*x1+M.b));x.stroke();
+    if(Number.isFinite(M.rm)&&M.rm>0&&M.rm<=xmax){x.fillStyle='#c6ff3d';x.beginPath();x.arc(X(M.rm),Y(M.mvt),6,0,7);x.fill();x.font='bold 12px system-ui';x.textAlign='right';x.fillText('1RM '+f(M.rm,1)+' kg',X(M.rm)-8,Y(M.mvt)-10)}
+  }
+  x.fillStyle='#e8ebf1';pts.forEach(p=>{x.beginPath();x.arc(X(p.l),Y(p.v),4.5,0,7);x.fill()});
+}
+addEventListener('resize',()=>draw());
+function summary(){if(!M)return'';return `VBT – ${M.atleta||'Atleta'} – ${M.ex}\nData: ${new Date().toLocaleDateString('it-IT')}\n`+M.pts.map(p=>`${p.l} kg\t${p.v} m/s`).join('\n')+`\n1RM stimato: ${f(M.rm,1)} kg (MVT ${f(M.mvt)} m/s)\nR²: ${f(M.r2,3)}\nV = ${f(M.m,5)}·kg + ${f(M.b,3)}`}
+$('#copyP').onclick=()=>M?copy(summary()):toast('Nessun profilo');
+$('#saveP').onclick=()=>{if(!M)return toast('Nessun profilo');const s=store.get('vbt_saved',[]);s.unshift({...P,pts:P.pts.filter(p=>p.l&&p.v),date:new Date().toISOString(),rm:M.rm,r2:M.r2});store.set('vbt_saved',s.slice(0,50));renderSaved();toast('Profilo salvato')};
+function renderSaved(){const s=store.get('vbt_saved',[]);$('#saved').innerHTML=s.length?`<table><thead><tr><th>Data</th><th>Atleta / esercizio</th><th>1RM</th><th></th></tr></thead><tbody>${s.map((p,i)=>`<tr><td>${new Date(p.date).toLocaleDateString('it-IT')}</td><td>${p.atleta||'–'}<br><span class="hint">${p.ex}</span></td><td><b>${f(p.rm,1)}</b> kg</td><td style="white-space:nowrap"><button class="btn s" data-load="${i}">Apri</button><button class="btn x" data-rm="${i}">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Nessun profilo salvato.</p>'}
+$('#saved').addEventListener('click',e=>{const s=store.get('vbt_saved',[]);if(e.target.dataset.load!=null){const p=s[+e.target.dataset.load];P={atleta:p.atleta,ex:p.ex,mvt:p.mvt,pts:p.pts.map(x=>({...x}))};loadUI();scrollTo({top:0,behavior:'smooth'});toast('Profilo caricato')}if(e.target.dataset.rm!=null){s.splice(+e.target.dataset.rm,1);store.set('vbt_saved',s);renderSaved()}});
+
+/* ---------- CARICHI ---------- */
+const loadAt=v=>M?(v-M.b)/M.m:NaN, velAt=l=>M?M.m*l+M.b:NaN;
+function updCarichi(){
+  const tv=num($('#tv').value),tl=num($('#tl').value);
+  $('#tvOut').innerHTML=M&&tv>0?`${f(loadAt(tv),1)} <small>kg · ${f(loadAt(tv)/M.rm*100,0)}%</small>`:'–';
+  $('#tlOut').innerHTML=M&&tl>0?`${f(velAt(tl),2)} <small>m/s · ${f(tl/M.rm*100,0)}%</small>`:'–';
+  if(!M||!Number.isFinite(M.rm)){$('#ctab').innerHTML='';$('#tabHint').textContent='Crea prima un profilo nella scheda "Profilo L-V".';return}
+  $('#tabHint').textContent=`${M.atleta||'Atleta'} · ${M.ex} · 1RM ${f(M.rm,1)} kg`;
+  let h='';for(let p=100;p>=40;p-=5){const kg=M.rm*p/100;h+=`<tr><td>${p}%</td><td>${f(velAt(kg),2)}</td><td><b>${f(kg,1)}</b> <span class="hint">(${f(Math.round(kg/2.5)*2.5,1)})</span></td></tr>`}
+  $('#ctab').innerHTML=h;
+}
+$('#tv').oninput=updCarichi;$('#tl').oninput=updCarichi;
+$('#copyT').onclick=()=>{if(!M)return toast('Nessun profilo');let t=`${M.ex} – 1RM ${f(M.rm,1)} kg\n%1RM\tm/s\tkg\n`;for(let p=100;p>=40;p-=5){const kg=M.rm*p/100;t+=`${p}%\t${f(velAt(kg),2)}\t${f(kg,1)}\n`}copy(t)};
+
+/* ---------- SERIE ---------- */
+let R=store.get('vbt_reps',[]);
+function addRep(v){if(!(v>0))return;R.push(v);store.set('vbt_reps',R);updSerie()}
+$('#addR').onclick=()=>{addRep(num($('#vin').value));$('#vin').value='';$('#vin').focus()};
+$('#vin').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addR').click()});
+$('#vlth').onchange=()=>{store.set('vbt_th',$('#vlth').value);updSerie()};
+$('#clrR').onclick=()=>{R=[];store.set('vbt_reps',R);updSerie()};
+$('#rtab').addEventListener('click',e=>{const d=e.target.dataset.del;if(d==null)return;R.splice(+d,1);store.set('vbt_reps',R);updSerie()});
+function updSerie(){
+  const th=+$('#vlth').value;const best=R.length?Math.max(...R):0;
+  const vl=v=>best?(1-v/best)*100:0;
+  $('#rtab').innerHTML=R.map((v,i)=>{const l=vl(v);const c=l>=th?'bd':l>=th*0.75?'wn':'ok';return `<tr><td>${i+1}</td><td>${f(v)}</td><td><span class="pill ${c}">${f(l,1)}%</span></td><td><button class="btn x" data-del="${i}">×</button></td></tr>`}).join('')||'<tr><td colspan="4" class="hint">Nessuna ripetizione</td></tr>';
+  const last=R.length?vl(R[R.length-1]):0;
+  $('#vlNow').textContent=f(last,1)+'%';$('#vlBar').style.width=Math.min(100,last/th*100)+'%';
+  $('#vlBar').style.background=last>=th?'var(--bad)':last>=th*0.75?'var(--warn)':'var(--acc)';
+  $('#vlMsg').innerHTML=!R.length?'<span class="hint">Aggiungi la prima ripetizione</span>':last>=th?'<span class="pill bd">STOP</span> Soglia superata, chiudi la serie':last>=th*0.75?'<span class="pill wn">Vicino alla soglia</span> Ancora 1 rep al massimo':'<span class="pill ok">Continua</span>';
+  $('#vBest').innerHTML=R.length?`${f(best)} <small>m/s</small>`:'–';
+  $('#vMean').innerHTML=R.length?`${f(R.reduce((a,b)=>a+b,0)/R.length)} <small>m/s</small>`:'–';
+  $('#vN').textContent=R.length;
+  $('#vPct').innerHTML=M&&R.length&&Number.isFinite(M.rm)?`${f(loadAt(R[0])/M.rm*100,0)}%`:'–';
+}
+$('#copyR').onclick=()=>{if(!R.length)return toast('Serie vuota');const b=Math.max(...R);copy('Rep\tm/s\tVL%\n'+R.map((v,i)=>`${i+1}\t${f(v)}\t${f((1-v/b)*100,1)}`).join('\n'))};
+
+/* ---------- ZONE ---------- */
+const Z=[
+ ['Forza assoluta','< 0.50 m/s','> ~85–90% 1RM',0.15,0.50,'#ff5d5d'],
+ ['Forza accelerativa','0.50 – 0.75 m/s','~70–85% 1RM',0.50,0.75,'#ffb03d'],
+ ['Forza-velocità','0.75 – 1.00 m/s','~55–70% 1RM',0.75,1.00,'#c6ff3d'],
+ ['Velocità-forza','1.00 – 1.30 m/s','~40–55% 1RM',1.00,1.30,'#3dd6ff'],
+ ['Forza iniziale / velocità','> 1.30 m/s','< ~40% 1RM',1.30,null,'#b18cff']];
+function updZone(){
+  $('#zlist').innerHTML=Z.map(z=>{let kg='';if(M&&Number.isFinite(M.rm)){const lo=z[4]?Math.max(0,loadAt(z[4])):0,hi=Math.min(M.rm,loadAt(Math.max(z[3],M.mvt)));kg=`<b style="color:${z[5]}">${f(lo,0)}–${f(hi,0)} kg</b>`}return `<div class="zone" style="border-color:${z[5]};background:#0f1218"><b>${z[0]}</b>${kg||'<span></span>'}<span>${z[1]} · ${z[2]}</span></div>`}).join('');
+}
+$('#mvtTab tbody').innerHTML=Object.entries(EX).filter(([k])=>!k.startsWith('Altro')).map(([k,v])=>`<tr><td>${k}</td><td>${f(v)}</td></tr>`).join('');
+
+/* ---------- VIDEO ---------- */
+const vid=$('#vid');let mS=null,mE=null,V=[];
+const fps=()=>+$('#fps').value, frame=t=>Math.round(t*fps());
+$('#vfile').onchange=e=>{const fl=e.target.files[0];if(!fl)return;vid.src=URL.createObjectURL(fl);mS=mE=null;updMarks()};
+vid.addEventListener('loadedmetadata',()=>{updT()});
+vid.addEventListener('timeupdate',updT);vid.addEventListener('seeked',updT);
+function updT(){const t=vid.currentTime||0;$('#tcur').textContent=`${t.toFixed(3)} s · fotogramma ${frame(t)}`;if(vid.duration)$('#seek').value=t/vid.duration*1000;$('#vrate').textContent=vid.playbackRate!==1?vid.playbackRate+'×':''}
+$('#seek').oninput=e=>{if(vid.duration){vid.pause();vid.currentTime=e.target.value/1000*vid.duration}};
+$$('[data-f]').forEach(b=>b.onclick=()=>{if(!vid.duration)return;vid.pause();vid.currentTime=Math.max(0,Math.min(vid.duration,(frame(vid.currentTime)+ +b.dataset.f)/fps()+0.0001))});
+$('#play').onclick=()=>{if(!vid.src)return;vid.paused?vid.play().catch(()=>{}):vid.pause()};
+vid.addEventListener('play',()=>$('#play').textContent='❚❚');vid.addEventListener('pause',()=>$('#play').textContent='▶︎');
+$('#slow').onclick=()=>{vid.playbackRate=vid.playbackRate===1?0.25:1;$('#slow').textContent=vid.playbackRate===1?'0.25×':'1×';updT()};
+$('#mStart').onclick=()=>{if(!vid.src)return toast('Carica un video');mS=vid.currentTime;mE=null;updMarks()};
+$('#mEnd').onclick=()=>{if(mS==null)return toast('Segna prima l\'inizio');mE=vid.currentTime;if(mE<=mS){toast('La fine deve venire dopo l\'inizio');mE=null;return}
+  const rom=num($('#rom').value);if(!(rom>0)){toast('Inserisci il ROM in cm');updMarks();return}
+  const dt=(frame(mE)-frame(mS))/fps();V.push({dt,v:rom/100/dt});mS=mE=null;updMarks();renderV();toast('Rep aggiunta')};
+function updMarks(){$('#marks').textContent=`Inizio: ${mS!=null?mS.toFixed(3)+' s (f '+frame(mS)+')':'–'} · Fine: ${mE!=null?mE.toFixed(3)+' s':'–'}`}
+function renderV(){const b=V.length?Math.max(...V.map(r=>r.v)):0;$('#vtab').innerHTML=V.map((r,i)=>`<tr><td>${i+1}</td><td>${f(r.dt,3)}</td><td><b>${f(r.v)}</b></td><td>${f((1-r.v/b)*100,1)}%</td><td><button class="btn x" data-del="${i}">×</button></td></tr>`).join('')||'<tr><td colspan="5" class="hint">Nessuna ripetizione misurata</td></tr>'}
+$('#vtab').addEventListener('click',e=>{const d=e.target.dataset.del;if(d==null)return;V.splice(+d,1);renderV()});
+$('#clrV').onclick=()=>{V=[];renderV()};
+$('#toSerie').onclick=()=>{if(!V.length)return toast('Nessuna rep');R=V.map(r=>+r.v.toFixed(3));store.set('vbt_reps',R);updSerie();$('#nav [data-t=serie]').click();toast('Serie inviata')};
+
+/* ---------- LIVE TRACKING ---------- */
+const L={src:null,stream:null,running:false,target:null,mode:null,cal:[],cmPerPx:null,pos:null,hist:[],reps:[],state:'idle',vNow:0,lostN:0,armed:false};
+const lv=$('#lvid'),ov=$('#ov'),octx=ov.getContext('2d');
+const pc=document.createElement('canvas'),pctx=pc.getContext('2d',{willReadFrequently:true});
+const PW=320; // processing width
+let audio=null;
+function stepMsg(t){$('#stepMsg').innerHTML=t}
+function rgb2hsv(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360}return[h,mx?d/mx:0,mx]}
+function vidRect(){ // displayed video rect inside stage (object-fit contain)
+  const cw=lv.clientWidth,ch=lv.clientHeight,vw=lv.videoWidth||1,vh=lv.videoHeight||1;const s=Math.min(cw/vw,ch/vh);return{x:(cw-vw*s)/2,y:(ch-vh*s)/2,s};
+}
+function stopAll(){L.running=false;if(L.stream){L.stream.getTracks().forEach(t=>t.stop());L.stream=null}lv.pause();}
+$('#stopBtn').onclick=()=>{stopAll();$('#camMsg').textContent='Fermato.'};
+$('#camBtn').onclick=async()=>{
+  stopAll();
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('#camMsg').innerHTML='<span class="pill bd">Fotocamera non disponibile</span> Questo browser o questa pagina non può usare la fotocamera. Apri il file <b>VBT Calc</b> fuori da Claude oppure analizza un video.';return}
+  try{
+    const st=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},frameRate:{ideal:60},width:{ideal:1280},height:{ideal:720}}});
+    L.stream=st;lv.srcObject=st;lv.removeAttribute('src');L.src='cam';await lv.play();
+    const s=st.getVideoTracks()[0].getSettings();$('#camMsg').innerHTML=`<span class="pill ok">Fotocamera attiva</span> ${s.width||''}×${s.height||''} @ ${s.frameRate?Math.round(s.frameRate):'?'} fps`;
+    startLoop();
+  }catch(e){$('#camMsg').innerHTML='<span class="pill bd">Fotocamera bloccata</span> Dentro la pagina di Claude la fotocamera non è consentita. Usa il file <b>VBT Calc</b> aperto nel browser oppure carica un video qui sopra.';}
+};
+$('#lfile').onchange=e=>{const fl=e.target.files[0];if(!fl)return;stopAll();lv.srcObject=null;lv.src=URL.createObjectURL(fl);L.src='file';lv.playbackRate=+$('#lrate').value;
+  lv.onloadeddata=()=>{lv.currentTime=0;$('#camMsg').innerHTML='<span class="pill ok">Video caricato</span> Tocca il marker e calibra, poi premi ▶︎.';startLoop(true)}};
+$('#lrate').onchange=()=>{lv.playbackRate=+$('#lrate').value};
+function ensurePlayBtn(){
+  if($('#lplay'))return;const b=document.createElement('button');b.className='btn';b.id='lplay';b.textContent='▶︎ Play / pausa video';b.onclick=()=>{if(L.src!=='file')return;if(lv.paused){if(lv.ended)lv.currentTime=0;lv.playbackRate=+$('#lrate').value;lv.play()}else lv.pause()};$('#pickBtn').parentNode.prepend(b);
+}
+function startLoop(paused){
+  L.running=true;L.hist=[];L.state='idle';L.pos=null;if(L.src==='file')ensurePlayBtn();
+  const hasRVFC='requestVideoFrameCallback' in HTMLVideoElement.prototype;
+  const tick=(now,meta)=>{if(!L.running)return;
+    const t=L.src==='file'?(meta&&meta.mediaTime!=null?meta.mediaTime:lv.currentTime):(performance.now()/1000);
+    process(t);
+    hasRVFC?lv.requestVideoFrameCallback(tick):requestAnimationFrame(n=>tick(n));};
+  hasRVFC?lv.requestVideoFrameCallback(tick):requestAnimationFrame(n=>tick(n));
+  if(paused){lv.pause();setTimeout(()=>{lv.currentTime=0.001},50)}
+  // keep overlay drawn while paused
+  const idle=()=>{if(!L.running)return;if(lv.paused)process(L.src==='file'?lv.currentTime:performance.now()/1000,true);setTimeout(idle,120)};idle();
+  stepMsg(L.target?(L.cmPerPx?'Pronto. Esegui la serie.':'Ora calibra: premi "2 · Calibra" e tocca due punti.'):'Premi "1 · Tocca il marker" e tocca l\'adesivo sul bilanciere.');
+}
+function grab(){
+  const vw=lv.videoWidth,vh=lv.videoHeight;if(!vw)return null;const ph=Math.round(PW*vh/vw);if(pc.width!==PW||pc.height!==ph){pc.width=PW;pc.height=ph}
+  pctx.drawImage(lv,0,0,PW,ph);return{img:pctx.getImageData(0,0,PW,ph),ph,k:PW/vw};
+}
+function track(fr){
+  const T=L.target;if(!T)return null;const {img,ph}=fr,d=img.data,tol=+$('#tol').value;
+  let x0=0,x1=PW,y0=0,y1=ph;if(L.pos&&L.lostN<10){const R=Math.round(PW*0.18);x0=Math.max(0,Math.round(L.pos.px-R));x1=Math.min(PW,Math.round(L.pos.px+R));y0=Math.max(0,Math.round(L.pos.py-R));y1=Math.min(ph,Math.round(L.pos.py+R))}
+  const sMin=Math.max(0.22,T[1]*0.55),vMin=Math.max(0.18,T[2]*0.5);let sx=0,sy=0,n=0;
+  for(let y=y0;y<y1;y++){let i=(y*PW+x0)*4;for(let x=x0;x<x1;x++,i+=4){const h=rgb2hsv(d[i],d[i+1],d[i+2]);let dh=Math.abs(h[0]-T[0]);if(dh>180)dh=360-dh;if(dh<tol&&h[1]>=sMin&&h[2]>=vMin){sx+=x;sy+=y;n++}}}
+  if(n<3)return null;return{px:sx/n,py:sy/n,n};
+}
+function slope(arr){const n=arr.length;if(n<2)return 0;let mt=0,my=0;arr.forEach(a=>{mt+=a.t;my+=a.y});mt/=n;my/=n;let num=0,den=0;arr.forEach(a=>{num+=(a.t-mt)*(a.y-my);den+=(a.t-mt)**2});return den?num/den:0}
+function process(t,still){
+  const fr=grab();if(!fr)return;sizeOv();
+  if(!still||!L.pos){const p=track(fr);if(p){L.pos=p;L.lostN=0}else{L.lostN++;if(L.lostN>10)L.pos=null}}
+  if(!still&&L.pos&&L.cmPerPx){
+    const yv=L.pos.py/fr.k; // video px
+    const y=-(yv*L.cmPerPx)/100; // m, up positive
+    const H=L.hist;if(!H.length||t>H[H.length-1].t){H.push({t,y,px:L.pos.px,py:L.pos.py});}
+    while(H.length&&t-H[0].t>8)H.shift();
+    const w=H.slice(-5);L.vNow=w.length>=3?slope(w):0;detect();
+  }
+  drawOv(fr);
+  $('#lvNow').innerHTML=L.cmPerPx&&L.pos?`${f(Math.max(0,L.vNow))} <small>m/s</small>`:'–';
+}
+const vOn=0.10,vOff=0.04;
+function detect(){
+  const H=L.hist,v=L.vNow,now=H[H.length-1];
+  if(L.state==='idle'&&v>vOn){L.state='up';L.upStart=now.t;L.peak=v;L.offN=0}
+  else if(L.state==='up'){L.peak=Math.max(L.peak,v);
+    if(v<vOff){L.offN++;if(L.offN>=2){L.state='idle';finishRep()}}else L.offN=0;
+    if(now.t-L.upStart>6){L.state='idle'}}
+}
+function finishRep(){
+  const H=L.hist;const tStart=L.upStart;
+  // bottom: min y within 0.6 s before motion start up to start
+  let bi=-1,ti=-1;
+  for(let i=0;i<H.length;i++){const a=H[i];if(a.t>=tStart-0.6&&a.t<=tStart+0.05){if(bi<0||a.y<H[bi].y)bi=i}}
+  for(let i=Math.max(bi,0);i<H.length;i++){if(ti<0||H[i].y>H[ti].y)ti=i}
+  if(bi<0||ti<=bi)return;
+  // concentric starts when bar leaves the bottom, ends when it first reaches the top (2 mm tolerance for noise)
+  const yb=H[bi].y,yt=H[ti].y,eps=0.001;let s=bi,e=ti;
+  for(let i=bi;i<ti;i++){if(H[i].y<=yb+eps)s=i}
+  for(let i=ti;i>s;i--){if(H[i].y>=yt-eps)e=i}
+  const rom=(yt-yb)*100,dt=H[e].t-H[s].t;
+  if(rom<num($('#minrom').value)||dt<=0.05)return;
+  const vm=(H[e].y-H[s].y)/dt;L.reps.push({v:vm,pk:L.peak,rom,dt});renderL(true);
+}
+function sizeOv(){const r=$('#stage').getBoundingClientRect(),dpr=devicePixelRatio||1;const w=Math.round(r.width*dpr),h=Math.round(r.height*dpr);if(ov.width!==w||ov.height!==h){ov.width=w;ov.height=h}}
+function drawOv(fr){
+  const dpr=devicePixelRatio||1,R=vidRect();octx.setTransform(1,0,0,1,0,0);octx.clearRect(0,0,ov.width,ov.height);octx.setTransform(dpr,0,0,dpr,0,0);
+  const toS=(vx,vy)=>[R.x+vx*R.s,R.y+vy*R.s];
+  if(L.cal.length){octx.strokeStyle='#3dd6ff';octx.fillStyle='#3dd6ff';octx.lineWidth=2;const pts=L.cal.map(p=>toS(p.x,p.y));pts.forEach(p=>{octx.beginPath();octx.arc(p[0],p[1],6,0,7);octx.fill()});if(pts.length===2){octx.beginPath();octx.moveTo(...pts[0]);octx.lineTo(...pts[1]);octx.stroke();octx.font='bold 13px system-ui';octx.fillText($('#refcm').value+' cm',pts[1][0]+8,pts[1][1])}}
+  const H=L.hist;if(H.length>1){octx.strokeStyle='rgba(198,255,61,.7)';octx.lineWidth=3;octx.beginPath();const tl=H[H.length-1].t;let st=false;H.forEach(a=>{if(tl-a.t>2.5)return;const p=toS(a.px/fr.k,a.py/fr.k);st?octx.lineTo(...p):(octx.moveTo(...p),st=true)});octx.stroke()}
+  if(L.pos){const p=toS(L.pos.px/fr.k,L.pos.py/fr.k);octx.strokeStyle=L.state==='up'?'#c6ff3d':'#fff';octx.lineWidth=3;octx.beginPath();octx.arc(p[0],p[1],16,0,7);octx.stroke()}
+  else if(L.target){octx.fillStyle='rgba(255,93,93,.85)';octx.font='bold 14px system-ui';octx.fillText('Marker non trovato',12,24)}
+}
+$('#pickBtn').onclick=()=>{if(!lv.videoWidth)return toast('Avvia prima la fotocamera o un video');L.mode='pick';stepMsg('<b>Tocca l\'adesivo</b> sul bilanciere nell\'immagine.')};
+$('#calBtn').onclick=()=>{if(!lv.videoWidth)return toast('Avvia prima la fotocamera o un video');L.mode='cal';L.cal=[];L.cmPerPx=null;stepMsg(`<b>Tocca il primo punto</b> (es. bordo alto del disco), poi il secondo, a ${$('#refcm').value} cm di distanza.`)};
+$('#refcm').oninput=()=>{if(L.cal.length===2)setCal()};
+function setCal(){const a=L.cal[0],b=L.cal[1];const dpx=Math.hypot(a.x-b.x,a.y-b.y);const cm=num($('#refcm').value);if(dpx>5&&cm>0){L.cmPerPx=cm/dpx;L.hist=[]}}
+$('#stage').addEventListener('pointerdown',e=>{
+  if(!L.mode||!lv.videoWidth)return;const r=$('#stage').getBoundingClientRect(),R=vidRect();
+  const vx=(e.clientX-r.left-R.x)/R.s,vy=(e.clientY-r.top-R.y)/R.s;if(vx<0||vy<0||vx>lv.videoWidth||vy>lv.videoHeight)return;
+  if(L.mode==='pick'){const fr=grab();const k=fr.k,cx=Math.round(vx*k),cy=Math.round(vy*k);let r0=0,g0=0,b0=0,n=0;for(let y=cy-2;y<=cy+2;y++)for(let x=cx-2;x<=cx+2;x++){if(x<0||y<0||x>=PW||y>=fr.ph)continue;const i=(y*PW+x)*4;r0+=fr.img.data[i];g0+=fr.img.data[i+1];b0+=fr.img.data[i+2];n++}
+    const hsv=rgb2hsv(r0/n,g0/n,b0/n);if(hsv[1]<0.25){toast('Colore poco saturo: usa un adesivo fluo');}
+    L.target=hsv;L.pos={px:cx,py:cy};L.lostN=0;L.mode=null;
+    stepMsg(L.cmPerPx?'Pronto. Esegui la serie.':'Marker preso ✓. Ora premi "2 · Calibra" e tocca due punti a distanza nota.');}
+  else if(L.mode==='cal'){L.cal.push({x:vx,y:vy});if(L.cal.length===2){setCal();L.mode=null;stepMsg(L.target?'Calibrato ✓. Pronto: esegui la serie.':'Calibrato ✓. Ora tocca il marker.')}}
+  if(lv.paused)process(L.src==='file'?lv.currentTime:performance.now()/1000,true);
+});
+function feedback(c){if($('#beep').value!=='1')return;try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=c==='bd'?330:c==='wn'?600:880;g.gain.value=.15;o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+(c==='bd'?0.45:0.12))}catch(e){}try{navigator.vibrate&&navigator.vibrate(c==='bd'?[200,80,200]:60)}catch(e){}}
+function renderL(fresh){
+  const th=+$('#vlth').value,Rr=L.reps,best=Rr.length?Math.max(...Rr.map(r=>r.v)):0;
+  $('#ltab').innerHTML=Rr.map((r,i)=>{const l=(1-r.v/best)*100;const c=l>=th?'bd':l>=th*0.75?'wn':'ok';return `<tr><td>${i+1}</td><td><b>${f(r.v)}</b></td><td>${f(r.pk)}</td><td>${f(r.rom,0)} cm</td><td><span class="pill ${c}">${f(l,1)}%</span></td></tr>`}).join('')||'<tr><td colspan="5" class="hint">Nessuna ripetizione</td></tr>';
+  $('#lvN').textContent=Rr.length;
+  if(!Rr.length){$('#lvLast').textContent='–';$('#lvVL').textContent='–';$('#lvPct').textContent='–';$('#lvStatus').textContent='In attesa';$('#liveBox').style.borderColor='';return}
+  const last=Rr[Rr.length-1],vl=(1-last.v/best)*100,c=vl>=th?'bd':vl>=th*0.75?'wn':'ok';
+  $('#lvLast').innerHTML=`${f(last.v)} <small style="font-size:16px">m/s</small>`;$('#lvVL').textContent=f(vl,1)+'%';
+  $('#lvPct').textContent=M&&Number.isFinite(M.rm)?f(loadAt(Rr[0].v)/M.rm*100,0)+'%':'–';
+  $('#lvStatus').innerHTML=c==='bd'?'<span class="pill bd">STOP</span> Soglia VL superata':c==='wn'?'<span class="pill wn">Vicino alla soglia</span>':'<span class="pill ok">Continua</span>';
+  $('#liveBox').style.borderColor=c==='bd'?'var(--bad)':c==='wn'?'var(--warn)':'var(--acc)';
+  if(fresh)feedback(c);
+}
+$('#lReset').onclick=()=>{L.reps=[];L.hist=[];L.state='idle';renderL()};
+$('#lToSerie').onclick=()=>{if(!L.reps.length)return toast('Nessuna rep');R=L.reps.map(r=>+r.v.toFixed(3));store.set('vbt_reps',R);updSerie();$('#nav [data-t=serie]').click();toast('Serie inviata')};
+$('#lCopy').onclick=()=>{if(!L.reps.length)return toast('Nessuna rep');const b=Math.max(...L.reps.map(r=>r.v));copy('Rep\tV media\tV picco\tROM cm\tVL%\n'+L.reps.map((r,i)=>`${i+1}\t${f(r.v)}\t${f(r.pk)}\t${f(r.rom,0)}\t${f((1-r.v/b)*100,1)}`).join('\n'))};
+$('#vlth').addEventListener('change',()=>renderL());
+renderL();
+
+/* init */
+$('#vlth').value=store.get('vbt_th','20');
+loadUI();renderSaved();renderV();
+const t0=store.get('vbt_tab','live');const tb=$(`#nav [data-t="${t0}"]`);if(tb)tb.click();
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+/* schermo sempre acceso durante la live */
+let wl=null;async function keepAwake(){try{if('wakeLock' in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>wl=null)}}catch(e){}}
+$('#camBtn').addEventListener('click',keepAwake);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&L.stream)keepAwake()});
+</script>
+</body>
+</html>
