@@ -2,7 +2,7 @@
 
 Web app per il **velocity based training**, da usare in palestra su telefono e PC.
 
-**Apri l'app:** https://vittobodra-ui.github.io/vbt-calc/
+**Apri l'app:** https://vittobodra-ui.github.io/osteo_vbt/
 
 ## Funzioni
 - **Live**: calibrazione toccando 3 punti sul bordo del disco (Ø 45 cm di default, modificabile); tracciamento del bilanciere con la fotocamera (adesivo colorato sulla testa del bilanciere). Conta le ripetizioni e calcola velocità media, velocità di picco, ROM e perdita di velocità, con avviso sonoro e vibrazione quando si supera la soglia. Analizza anche video registrati.
